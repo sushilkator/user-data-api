@@ -42,7 +42,7 @@ export class AppError extends Error {
       message,
       500,
       ErrorCode.INTERNAL_SERVER_ERROR,
-      false,
+      true,
       details
     );
   }

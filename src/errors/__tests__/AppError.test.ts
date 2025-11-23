@@ -76,7 +76,7 @@ describe('AppError', () => {
 
         expect(error.statusCode).toBe(500);
         expect(error.errorCode).toBe(ErrorCode.INTERNAL_SERVER_ERROR);
-        expect(error.isOperational).toBe(false);
+        expect(error.isOperational).toBe(true);
         expect(error.message).toBe('Internal server error');
       });
 
@@ -85,7 +85,7 @@ describe('AppError', () => {
 
         expect(error.statusCode).toBe(500);
         expect(error.errorCode).toBe(ErrorCode.INTERNAL_SERVER_ERROR);
-        expect(error.isOperational).toBe(false);
+        expect(error.isOperational).toBe(true);
         expect(error.message).toBe('Database connection failed');
       });
 

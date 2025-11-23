@@ -59,7 +59,7 @@ describe('User Routes', () => {
       expect(response.status).toBe(404);
       expect(response.body).toMatchObject({
         success: false,
-        error: 'User with id 999 not found.',
+        error: 'USER_NOT_FOUND',
         errorCode: 'USER_NOT_FOUND',
         message: 'User with id 999 not found.',
       });
@@ -73,7 +73,7 @@ describe('User Routes', () => {
       expect(response.status).toBe(400);
       expect(response.body).toMatchObject({
         success: false,
-        error: 'Invalid user id.',
+        error: 'INVALID_USER_ID',
         errorCode: 'INVALID_USER_ID',
         message: 'Invalid user id.',
       });
@@ -88,7 +88,7 @@ describe('User Routes', () => {
       expect(response.status).toBe(400);
       expect(response.body).toMatchObject({
         success: false,
-        error: 'Invalid user id.',
+        error: 'INVALID_USER_ID',
         errorCode: 'INVALID_USER_ID',
       });
     });
@@ -99,7 +99,7 @@ describe('User Routes', () => {
       expect(response.status).toBe(400);
       expect(response.body).toMatchObject({
         success: false,
-        error: 'Invalid user id.',
+        error: 'INVALID_USER_ID',
         errorCode: 'INVALID_USER_ID',
       });
     });
@@ -152,7 +152,7 @@ describe('User Routes', () => {
       expect(response.status).toBe(400);
       expect(response.body).toMatchObject({
         success: false,
-        error: 'Name is required',
+        error: 'VALIDATION_ERROR',
         errorCode: 'VALIDATION_ERROR',
         message: 'Name is required',
       });
@@ -182,7 +182,7 @@ describe('User Routes', () => {
       expect(response.status).toBe(400);
       expect(response.body).toMatchObject({
         success: false,
-        error: 'Invalid email format',
+        error: 'VALIDATION_ERROR',
         errorCode: 'VALIDATION_ERROR',
         message: 'Invalid email format',
       });
@@ -249,8 +249,9 @@ describe('User Routes', () => {
       expect(response.status).toBe(500);
       expect(response.body).toMatchObject({
         success: false,
-        error: 'Failed to retrieve cache statistics',
+        error: 'Internal server error',
         errorCode: 'INTERNAL_SERVER_ERROR',
+        message: 'An unexpected error occurred.',
       });
       expect(response.body).toHaveProperty('timestamp');
       expect(response.body).toHaveProperty('path');
@@ -275,8 +276,9 @@ describe('User Routes', () => {
       expect(response.status).toBe(500);
       expect(response.body).toMatchObject({
         success: false,
-        error: 'Failed to retrieve cache statistics',
+        error: 'Internal server error',
         errorCode: 'INTERNAL_SERVER_ERROR',
+        message: 'An unexpected error occurred.',
       });
 
       consoleSpy.mockRestore();

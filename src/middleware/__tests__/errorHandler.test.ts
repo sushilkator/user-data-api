@@ -35,7 +35,7 @@ describe('errorHandler', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,
-          error: 'Test error',
+          error: ErrorCode.USER_NOT_FOUND,
           errorCode: ErrorCode.USER_NOT_FOUND,
           message: 'Test error',
           timestamp: expect.any(String),
@@ -57,7 +57,7 @@ describe('errorHandler', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,
-          error: 'Test error',
+          error: ErrorCode.VALIDATION_ERROR,
           errorCode: ErrorCode.VALIDATION_ERROR,
           details: undefined, // No details in production
         })
@@ -145,8 +145,8 @@ describe('errorHandler', () => {
 
     it('should handle AppError that is not operational', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      // Create AppError with isOperational = false (internal errors are non-operational)
-      const error = AppError.internal('Internal error', { code: 'ERR' });
+      // Create AppError with isOperational = false
+      const error = new AppError('Internal error', 500, ErrorCode.INTERNAL_SERVER_ERROR, false, { code: 'ERR' });
       errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
       // Should log as error (not warning) because isOperational = false

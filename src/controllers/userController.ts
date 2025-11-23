@@ -23,18 +23,20 @@ export const getUserById = asyncHandler(async (req: Request, res: Response): Pro
   res.status(200).json({ success: true, data: user });
 });
 
-export const createUser = (req: Request<unknown, unknown, CreateUserRequest>, res: Response): void => {
-  const { error, value } = createUserSchema.validate(req.body, { abortEarly: false });
+export const createUser = asyncHandler(
+  async (req: Request<unknown, unknown, CreateUserRequest>, res: Response): Promise<void> => {
+    const { error, value } = createUserSchema.validate(req.body, { abortEarly: false });
 
-  if (error) {
-    const errorMessage = error.details.map((detail) => detail.message).join(', ');
-    throw AppError.validation(errorMessage);
+    if (error) {
+      const errorMessage = error.details.map((detail) => detail.message).join(', ');
+      throw AppError.validation(errorMessage, error.details);
+    }
+
+    const { name, email } = value;
+    const user = userService.createUser(name, email);
+    res.status(201).json({ success: true, data: user, message: 'User created successfully' });
   }
-
-  const { name, email } = value;
-  const user = userService.createUser(name, email);
-  res.status(201).json({ success: true, data: user, message: 'User created successfully' });
-};
+);
 
 export const clearCache = (_req: Request, res: Response): void => {
   userService.clearCache();
@@ -42,19 +44,15 @@ export const clearCache = (_req: Request, res: Response): void => {
 };
 
 export const getCacheStatus = (_req: Request, res: Response): void => {
-  try {
-    const cacheStats = userService.getCacheStats();
-    const avgResponseTimeMs = metrics.getAverageResponseTimeMs();
+  const cacheStats = userService.getCacheStats();
+  const avgResponseTimeMs = metrics.getAverageResponseTimeMs();
 
-    res.status(200).json({
-      success: true,
-      data: {
-        ...cacheStats,
-        averageResponseTimeMs: avgResponseTimeMs,
-      },
-    });
-  } catch (error) {
-    throw AppError.internal('Failed to retrieve cache statistics', error);
-  }
+  res.status(200).json({
+    success: true,
+    data: {
+      ...cacheStats,
+      averageResponseTimeMs: avgResponseTimeMs,
+    },
+  });
 };
 

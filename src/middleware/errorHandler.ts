@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../errors/AppError';
-import { ErrorResponse } from '../types/errors';
-import { ErrorCode } from '../types/errors';
+import { ErrorResponse, ErrorCode } from '../types/errors';
 import { HttpStatus } from '../types/api';
 
 const formatError = (error: Error | AppError, req: Request): ErrorResponse => {
@@ -10,7 +9,7 @@ const formatError = (error: Error | AppError, req: Request): ErrorResponse => {
   if (error instanceof AppError) {
     return {
       success: false,
-      error: error.message,
+      error: error.errorCode,
       errorCode: error.errorCode,
       message: error.message,
       details: isDevelopment ? error.details : undefined,

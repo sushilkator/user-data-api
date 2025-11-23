@@ -49,7 +49,7 @@ describe('rateLimiter', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: 'Rate limit exceeded',
+        error: 'RATE_LIMIT_EXCEEDED',
       })
     );
   });

@@ -35,7 +35,7 @@ export function rateLimiter(
   if (lastMinuteCount >= MAX_PER_MINUTE || last10SecCount >= MAX_PER_10_SECONDS) {
     res.status(HttpStatus.TOO_MANY_REQUESTS).json({
       success: false,
-      error: 'Rate limit exceeded',
+      error: ErrorCode.RATE_LIMIT_EXCEEDED,
       errorCode: ErrorCode.RATE_LIMIT_EXCEEDED,
       message:
         'Rate limit exceeded. Please slow down (10 requests/minute, burst of 5 per 10 seconds allowed).',
