@@ -1,5 +1,6 @@
 import { User } from '../types/user';
 
+// TODO: replace with real database when integrating
 export const mockUsers: Record<number, User> = {
   1: { id: 1, name: 'John Doe', email: 'john@example.com' },
   2: { id: 2, name: 'Jane Smith', email: 'jane@example.com' },

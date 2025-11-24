@@ -14,6 +14,12 @@ export class Metrics {
     if (this.requestCount === 0) return 0;
     return this.totalResponseTimeMs / this.requestCount;
   }
+
+  // For testing purposes
+  reset(): void {
+    this.totalResponseTimeMs = 0;
+    this.requestCount = 0;
+  }
 }
 
 export const metrics = new Metrics();

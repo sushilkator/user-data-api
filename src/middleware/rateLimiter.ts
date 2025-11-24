@@ -33,6 +33,14 @@ export function rateLimiter(
 
   // Check both limits
   if (lastMinuteCount >= MAX_PER_MINUTE || last10SecCount >= MAX_PER_10_SECONDS) {
+    const resetTime = record.timestamps.length > 0 
+      ? record.timestamps[0] + 60_000 
+      : now + 60_000;
+    
+    res.setHeader('X-RateLimit-Limit', String(MAX_PER_MINUTE));
+    res.setHeader('X-RateLimit-Remaining', '0');
+    res.setHeader('X-RateLimit-Reset', String(Math.ceil(resetTime / 1000)));
+    
     res.status(HttpStatus.TOO_MANY_REQUESTS).json({
       success: false,
       error: ErrorCode.RATE_LIMIT_EXCEEDED,
@@ -45,5 +53,15 @@ export function rateLimiter(
   }
 
   record.timestamps.push(now);
+  
+  const remaining = MAX_PER_MINUTE - lastMinuteCount;
+  const resetTime = record.timestamps.length > 0 
+    ? record.timestamps[0] + 60_000 
+    : now + 60_000;
+  
+  res.setHeader('X-RateLimit-Limit', String(MAX_PER_MINUTE));
+  res.setHeader('X-RateLimit-Remaining', String(remaining));
+  res.setHeader('X-RateLimit-Reset', String(Math.ceil(resetTime / 1000)));
+  
   next();
 }

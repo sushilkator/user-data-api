@@ -18,6 +18,7 @@ describe('rateLimiter', () => {
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     } as unknown as Response;
     const next = jest.fn();
 
@@ -25,6 +26,7 @@ describe('rateLimiter', () => {
 
     expect(next).toHaveBeenCalled();
     expect(res.status).not.toHaveBeenCalled();
+    expect(res.setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', '10');
   });
 
   it('should block request exceeding minute limit', () => {
@@ -33,6 +35,7 @@ describe('rateLimiter', () => {
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     } as unknown as Response;
     const next = jest.fn();
 
@@ -60,6 +63,7 @@ describe('rateLimiter', () => {
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     } as unknown as Response;
     const next = jest.fn();
 
@@ -81,6 +85,7 @@ describe('rateLimiter', () => {
     const res1 = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     } as unknown as Response;
     const next1 = jest.fn();
 
@@ -97,6 +102,7 @@ describe('rateLimiter', () => {
     const res2 = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     } as unknown as Response;
     const next2 = jest.fn();
     rateLimiter(req, res2, next2);
@@ -111,6 +117,7 @@ describe('rateLimiter', () => {
     const res1 = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     } as unknown as Response;
     const next1 = jest.fn();
 
@@ -127,6 +134,7 @@ describe('rateLimiter', () => {
     const res2 = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     } as unknown as Response;
     const next2 = jest.fn();
     rateLimiter(req, res2, next2);
@@ -141,6 +149,7 @@ describe('rateLimiter', () => {
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     } as unknown as Response;
     const next = jest.fn();
 
@@ -163,6 +172,7 @@ describe('rateLimiter', () => {
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     } as unknown as Response;
     const next = jest.fn();
 
@@ -177,6 +187,7 @@ describe('rateLimiter', () => {
     const res1 = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     } as unknown as Response;
     const next1 = jest.fn();
 
@@ -193,6 +204,7 @@ describe('rateLimiter', () => {
     const res2 = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     } as unknown as Response;
     const next2 = jest.fn();
     rateLimiter(req, res2, next2);
@@ -206,6 +218,7 @@ describe('rateLimiter', () => {
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
     } as unknown as Response;
     const next = jest.fn();
 
