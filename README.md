@@ -1,36 +1,78 @@
-# User Data API
+# User Data API - Microservices Architecture
 
-Express.js API with TypeScript for serving user data. Implements LRU caching, rate limiting, and async processing.
+Express.js microservices API with TypeScript, MongoDB, and Redis. Implements distributed caching, rate limiting, and service-oriented architecture.
+
+## Architecture
+
+This project follows a **microservices architecture** with three main services:
+
+1. **API Gateway** (Port 3000) - Routes requests, handles rate limiting, and aggregates responses
+2. **User Service** (Port 3001) - Manages user data with MongoDB
+3. **Cache Service** (Port 3002) - Handles caching operations with Redis
+
+## Prerequisites
+
+- Node.js 18+
+- MongoDB (running on localhost:27017)
+- Redis (running on localhost:6379)
 
 ## Quick Start
 
+### 1. Install Dependencies
+
 ```bash
 npm install
-npm run build
-npm start
 ```
 
-Server runs on `http://localhost:3000`
+### 2. Setup Environment
 
-## What's Included
+Copy `.env.example` to `.env` and configure:
 
-- **LRU Cache**: 60-second TTL, auto cleanup every 10 seconds
-- **Rate Limiting**: 10 req/min, burst of 5 per 10 seconds
-- **Async Queue**: Non-blocking DB simulation (200ms delay)
-- **Request Deduplication**: Concurrent requests for same user share one DB call
-- **Error Handling**: Custom error classes with proper status codes
+```bash
+MONGODB_URI=mongodb://localhost:27017/user-data-api
+REDIS_URL=redis://localhost:6379
+GATEWAY_PORT=3000
+USER_SERVICE_PORT=3001
+CACHE_SERVICE_PORT=3002
+```
+
+### 3. Start Services
+
+**Option A: Start all services separately (recommended for development)**
+
+```bash
+# Terminal 1 - User Service
+npm run dev:user-service
+
+# Terminal 2 - Cache Service
+npm run dev:cache-service
+
+# Terminal 3 - API Gateway
+npm run dev:gateway
+```
+
+**Option B: Build and start production**
+
+```bash
+npm run build
+npm run start:user-service &
+npm run start:cache-service &
+npm run start:gateway
+```
 
 ## API Endpoints
 
+All requests go through the API Gateway at `http://localhost:3000`
+
 ### GET /users/:id
-Get user by ID. Cached for 60 seconds.
+Get user by ID. Cached in Redis for 60 seconds.
 
 ```bash
-curl http://localhost:3000/users/1
+curl http://localhost:3000/users/507f1f77bcf86cd799439011
 ```
 
 ### POST /users
-Create a new user. Auto-cached.
+Create a new user. Auto-cached in Redis.
 
 ```bash
 curl -X POST http://localhost:3000/users \
@@ -38,11 +80,18 @@ curl -X POST http://localhost:3000/users \
   -d '{"name":"Jane Doe","email":"jane@example.com"}'
 ```
 
-### GET /cache-status
-Cache stats (hits, misses, size, avg response time).
+### GET /users
+Get all users.
 
 ```bash
-curl http://localhost:3000/cache-status
+curl http://localhost:3000/users
+```
+
+### GET /cache/status
+Cache statistics (size, hits, misses, avg response time).
+
+```bash
+curl http://localhost:3000/cache/status
 ```
 
 ### DELETE /cache
@@ -53,107 +102,143 @@ curl -X DELETE http://localhost:3000/cache
 ```
 
 ### GET /health
-Health check.
+Health check for API Gateway.
 
 ```bash
 curl http://localhost:3000/health
 ```
 
-## Testing
+## Technology Stack
 
-### Automated Tests
+### Backend
+- **Node.js** + **Express.js** - Web framework
+- **TypeScript** - Type safety
+- **MongoDB** + **Mongoose** - Database
+- **Redis** - Caching and rate limiting
 
-```bash
-npm test
-npm run test:coverage
-```
-
-Tests cover cache, queue, rate limiter, controllers, and routes. 100% coverage.
-
-### Manual Testing
-
-**Postman**: Import `postman_collection.json` and `postman_environment.json`
-
-**cURL Examples**:
-
-```bash
-# Test cache hit/miss
-curl http://localhost:3000/users/1  # First: ~200ms (cache miss)
-curl http://localhost:3000/users/1  # Second: <10ms (cache hit)
-
-# Test rate limiting (send 11 requests quickly)
-for i in {1..11}; do curl http://localhost:3000/users/1; done
-
-# Test concurrent requests (should dedupe)
-curl http://localhost:3000/users/1 &
-curl http://localhost:3000/users/1 &
-curl http://localhost:3000/users/1 &
-wait
-```
-
-## Architecture Notes
-
-### Why In-Memory Queue?
-
-I used a simple in-memory queue instead of Bull/Redis because for a single-node demo it keeps setup simple. In production, I'd use Redis + BullMQ for distributed processing.
-
-### Cache Implementation
-
-The LRU cache uses a Map with TTL tracking. When capacity is reached, it evicts the least recently used entry. Background cleanup runs every 10 seconds to remove expired entries.
-
-Cache flow:
-1. Check cache → hit? return immediately
-2. Check if request already in-flight → wait for that
-3. Queue DB fetch → process async → cache result → return
-
-### Rate Limiting
-
-Dual-window approach: track requests per minute and per 10-second burst window. Each IP gets its own bucket. Old timestamps are cleaned up on each request.
-
-### Error Handling
-
-Custom `AppError` class with error codes. Centralized error handler middleware catches everything. In dev, errors include stack traces. In prod, generic messages only.
-
-### Request Deduplication
-
-When multiple requests come in for the same user ID simultaneously, they all wait for the first one to finish. Only one DB call happens, and all requests get the same cached result.
+### Testing
+- **Mocha** - Test framework
+- **Chai** - Assertion library
+- **Supertest** - HTTP testing
 
 ## Project Structure
 
 ```
-src/
-├── controllers/     # Request handlers
-├── data/           # Mock user data
-├── errors/         # Custom error classes
-├── middleware/     # Rate limiter, error handler, metrics
-├── routes/         # Route definitions
-├── services/       # Business logic (cache, queue, user service)
-└── types/          # TypeScript types
+user-data-api/
+├── api-gateway/          # API Gateway service
+│   ├── config/           # Redis configuration
+│   ├── middleware/       # Rate limiter, metrics
+│   ├── routes/           # Route handlers
+│   └── services/         # Service clients
+├── services/
+│   ├── user-service/     # User management service
+│   │   ├── config/       # MongoDB configuration
+│   │   ├── models/       # Mongoose models
+│   │   ├── routes/       # User routes
+│   │   └── services/     # Business logic
+│   └── cache-service/    # Cache management service
+│       ├── config/       # Redis configuration
+│       ├── routes/       # Cache routes
+│       └── services/     # Cache operations
+├── shared/               # Shared code
+│   ├── errors/           # Error classes
+│   ├── middleware/       # Shared middleware
+│   ├── types/            # TypeScript types
+│   └── validators/       # Validation schemas
+└── dist/                 # Compiled JavaScript
+```
+
+## Features
+
+### Microservices Architecture
+- **Service Separation**: Each service handles a specific domain
+- **API Gateway**: Single entry point for all client requests
+- **Service Communication**: HTTP-based inter-service communication
+
+### MongoDB Integration
+- **User Storage**: Persistent user data in MongoDB
+- **Mongoose ODM**: Type-safe database operations
+- **Auto-generated IDs**: MongoDB ObjectId for unique identifiers
+
+### Redis Integration
+- **Distributed Caching**: Redis-backed cache for user data
+- **Rate Limiting**: Redis-based rate limiting (works across instances)
+- **TTL Support**: Automatic cache expiration (60 seconds)
+
+### Rate Limiting
+- **Dual Window**: 10 requests/minute, 5 requests per 10 seconds
+- **Redis-backed**: Distributed rate limiting across service instances
+- **Headers**: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
+
+## Testing
+
+### Run Tests
+
+```bash
+npm test
+```
+
+### Test Coverage
+
+Tests are written with **Mocha** and **Chai**:
+
+- Unit tests for services
+- Integration tests for routes
+- Middleware tests
+
+## Development
+
+### Scripts
+
+- `npm run build` - Compile TypeScript
+- `npm run dev:user-service` - Start user service in dev mode
+- `npm run dev:cache-service` - Start cache service in dev mode
+- `npm run dev:gateway` - Start API gateway in dev mode
+- `npm test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
+
+## Environment Variables
+
+```env
+# MongoDB
+MONGODB_URI=mongodb://localhost:27017/user-data-api
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+# Service Ports
+GATEWAY_PORT=3000
+USER_SERVICE_PORT=3001
+CACHE_SERVICE_PORT=3002
+
+# Service URLs (for API Gateway)
+USER_SERVICE_URL=http://localhost:3001
+CACHE_SERVICE_URL=http://localhost:3002
+
+# Environment
+NODE_ENV=development
 ```
 
 ## Design Decisions
 
-**MVC Pattern**: Routes → Controllers → Services. Keeps things organized.
+**Microservices**: Separated concerns into independent services for scalability and maintainability.
 
-**Singleton Services**: `userService` and `metrics` are singletons. Simple for this scope.
+**MongoDB**: Chose MongoDB for flexible schema and easy horizontal scaling.
 
-**Type Safety**: Strict TypeScript, no `any` types. All interfaces defined.
+**Redis**: Used Redis for distributed caching and rate limiting to support multiple service instances.
 
-**No Validation Library**: Used simple regex for email validation. For production, I'd add `zod` or `joi`.
+**Mocha/Chai**: Industry-standard testing framework for Node.js applications.
 
 ## Limitations
 
-- In-memory only (not production-ready for multi-instance)
-- No real database (mock data)
-- No authentication
-- Rate limiter state is in-memory (won't work across instances)
+- Service discovery is hardcoded (use service mesh in production)
+- No authentication/authorization
+- No message queue for async processing
+- Health checks are basic
 
-For production, I'd add Redis for cache/rate limiting, a real DB, and proper auth.
-
-## Scripts
-
-- `npm run dev` - Development with hot-reload
-- `npm run build` - Compile TypeScript
-- `npm start` - Production server
-- `npm test` - Run tests
-- `npm run test:coverage` - Coverage report
+For production, consider adding:
+- Service discovery (Consul, Eureka)
+- API authentication (JWT, OAuth)
+- Message queue (RabbitMQ, Kafka)
+- Monitoring (Prometheus, Grafana)
+- Load balancing
